@@ -3,47 +3,39 @@ name: Deploy React App to AWS S3
 on:
   push:
     branches:
-      - dev  # Trigger the workflow when you push to the 'main' branch
+      - dev  # Trigger workflow on 'dev' branch push
 
 jobs:
   deploy_to_s3:
-    runs-on: ubuntu-latest  # Use a Linux environment for the runner
+    runs-on: ubuntu-latest  # Use GitHub's Ubuntu runner
 
     steps:
-      # Step 1: Checkout the repository
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      # Step 2: Set up Node.js environment
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '22'  # Choose the Node.js version that you use in your app
+          node-version: '22'  # Use stable Node.js version
 
-      # Step 3: Install dependencies
       - name: Install dependencies
-        run: |
-          npm install
+        run: npm install
 
-      # Step 4: Build the React app
       - name: Build the React app
-        run: |
-          npm run build  # Builds the app and generates the 'build' folder
+        run: npm run build  # Generates the 'build' folder
 
-      # Step 5: Set up AWS CLI
-      - name: Set up AWS CLI
+      - name: Install AWS CLI
         run: |
-          sudo apt-get update
-          sudo apt-get install -y awscli
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install
 
-      # Step 6: Configure AWS CLI with Secrets
       - name: Configure AWS CLI
         run: |
           aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws configure set region ${{ secrets.AWS_REGION }}
 
-      # Step 7: Sync the 'build' folder to S3
       - name: Upload build folder to S3 Bucket
         run: |
-          aws s3 sync ./dist s3://zukarte-deployment-web-app --delete --exclude ".git/*"
+          aws s3 sync ./build s3://zukarte-deployment-web-app --delete --exclude ".git/*"
