@@ -1,0 +1,30 @@
+name: Git Automation on Windows
+
+on:
+  push:
+    branches:
+      - main  # Runs when you push to the main branch
+
+jobs:
+  automate_git:
+    runs-on: windows-latest  # Runs in a Windows environment
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Git Credentials
+        run: |
+          git config --global user.name "your-github-username"
+          git config --global user.email "your-email@example.com"
+
+      - name: Authenticate Using GitHub Token
+        run: |
+          git remote set-url origin https://your-username:${{ secrets.GITHUB_TOKEN }}@github.com/your-username/your-repo.git
+
+      - name: Create a Sample Page
+        run: |
+          echo "<h1>Hello, this is an automated Git process on Windows!</h1>" > index.html
+          git add index.html
+          git commit -m "Added sample page"
+          git push origin main
