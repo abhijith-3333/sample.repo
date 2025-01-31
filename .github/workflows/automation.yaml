@@ -1,41 +1,97 @@
-name: Deploy React App to AWS S3
+# name: Deploy React App to AWS S3
+
+# on:
+#   push:
+#     branches:
+#       - dev  # Trigger workflow on 'dev' branch push
+
+# jobs:
+#   deploy_to_s3:
+#     runs-on: ubuntu-latest  # Use GitHub's Ubuntu runner
+
+#     steps:
+#       - name: Checkout Repository
+#         uses: actions/checkout@v3
+
+#       - name: Set up Node.js
+#         uses: actions/setup-node@v3
+#         with:
+#           node-version: '22'  # Use stable Node.js version
+
+#       - name: Install dependencies
+#         run: npm install
+
+#       - name: Build the React app
+#         run: npm run build  # Generates the 'build' folder
+
+#       - name: Install AWS CLI
+#         run: |
+#           curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+#           unzip awscliv2.zip
+#           sudo ./aws/install
+
+#       - name: Configure AWS CLI
+#         run: |
+#           aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+#           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws configure set region ${{ secrets.AWS_REGION }}
+
+#       - name: Upload build folder to S3 Bucket
+#         run: |
+#           aws s3 sync ./build s3://zukarte-deployment-web-app --delete --exclude ".git/*"
+
+
+name: Build and Deploy for zukarte  React App
 
 on:
   push:
-    branches:
-      - dev  # Trigger workflow on 'dev' branch push
-
+    branches: [dev ]  # Change to your branch name if needed
+env:
+  RUNNER_VM_MEM: 4096 
+  
 jobs:
-  deploy_to_s3:
-    runs-on: ubuntu-latest  # Use GitHub's Ubuntu runner
+  build-and-deploy:
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
         with:
-          node-version: '22'  # Use stable Node.js version
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-2 # Replace with your region
+
+      - name: Install Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 18  # Update if needed for your React app
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --force  # Change to your package manager if needed
 
-      - name: Build the React app
-        run: npm run build  # Generates the 'build' folder
+      - name: Build React App
+        run: npm run build
 
-      - name: Install AWS CLI
+      - name: Zip build app
         run: |
-          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-          unzip awscliv2.zip
-          sudo ./aws/install
+           zip -r dist.zip dist   
+          # zip -r dist.zip dist appspec.yml scripts/  # Zip your Flask app project
 
-      - name: Configure AWS CLI
-        run: |
-          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws configure set region ${{ secrets.AWS_REGION }}
+      - name: Upload zip file to S3
+        run: aws s3 cp dist.zip s3://zukarte-deployment-web-app/
 
-      - name: Upload build folder to S3 Bucket
-        run: |
-          aws s3 sync ./build s3://zukarte-deployment-web-app --delete --exclude ".git/*"
+      # - name: Create deployment
+      #   run: |
+      #     aws deploy create-deployment \
+      #       --application-name CD-Admin-Web-app \
+      #       --s3-location bucket=i3-web-admin,key=dist.zip,bundleType=zip \
+      #       --deployment-group-name DG-CD-Admin-web-app-staging \
+      #       --region eu-west-2 \
+      #       --description "Deploying react app"  # Adjust as needed
+
+
+
+   
+
