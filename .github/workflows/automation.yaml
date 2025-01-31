@@ -1,30 +1,49 @@
-name: Git Automation on Windows
+name: Deploy React App to AWS S3
 
 on:
   push:
     branches:
-      - main  # Runs when you push to the main branch
+      - dev # Trigger the workflow when you push to the 'main' branch
 
 jobs:
-  automate_git:
-    runs-on: windows-latest  # Runs in a Windows environment
+  deploy_to_s3:
+    runs-on: ubuntu-latest  # Use a Linux environment for the runner
 
     steps:
+      # Step 1: Checkout the repository
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Set up Git Credentials
-        run: |
-          git config --global user.name "your-github-username"
-          git config --global user.email "your-email@example.com"
+      # Step 2: Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'  # Choose the Node.js version that you use in your app
 
-      - name: Authenticate Using GitHub Token
+      # Step 3: Install dependencies
+      - name: Install dependencies
         run: |
-          git remote set-url origin https://your-username:${{ secrets.GITHUB_TOKEN }}@github.com/your-username/your-repo.git
+          npm install
 
-      - name: Create a Sample Page
+      # Step 4: Build the React app
+      - name: Build the React app
         run: |
-          echo "<h1>Hello, this is an automated Git process on Windows!</h1>" > index.html
-          git add index.html
-          git commit -m "Added sample page"
-          git push origin main
+          npm run build  # Builds the app and generates the 'build' folder
+
+      # Step 5: Set up AWS CLI
+      - name: Set up AWS CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli
+
+      # Step 6: Configure AWS CLI with Secrets
+      - name: Configure AWS CLI
+        run: |
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws configure set region ${{ secrets.AWS_REGION }}
+
+      # Step 7: Sync the 'build' folder to S3
+      - name: Upload build folder to S3 Bucket
+        run: |
+          aws s3 sync ./build s3://your-bucket-name --delete --exclude ".git/*"
