@@ -3,7 +3,7 @@ name: Deploy React App to AWS S3
 on:
   push:
     branches:
-      - dev # Trigger the workflow when you push to the 'main' branch
+      - dev  # Trigger the workflow when you push to the 'main' branch
 
 jobs:
   deploy_to_s3:
@@ -18,7 +18,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'  # Choose the Node.js version that you use in your app
+          node-version: '22'  # Choose the Node.js version that you use in your app
 
       # Step 3: Install dependencies
       - name: Install dependencies
@@ -46,4 +46,4 @@ jobs:
       # Step 7: Sync the 'build' folder to S3
       - name: Upload build folder to S3 Bucket
         run: |
-          aws s3 sync ./build s3://your-bucket-name --delete --exclude ".git/*"
+          aws s3 sync ./dist s3://zukarte-deployment-web-app --delete --exclude ".git/*"
