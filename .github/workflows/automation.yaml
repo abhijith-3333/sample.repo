@@ -87,7 +87,7 @@ jobs:
           aws deploy create-deployment \
             --application-name web_zukarte \
             --s3-location bucket=zukarte-deployment-web-app,key=dist.zip,bundleType=zip \
-            --deployment-group-name DG-webapp-staging \
+            --deployment-group-name DG-webapp \
             --region ap-south-1 \
             --description "Deploying react app"  # Adjust as needed
 
