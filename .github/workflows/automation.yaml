@@ -76,20 +76,20 @@ jobs:
 
       - name: Zip build app
         run: |
-           zip -r dist.zip dist   
-          # zip -r dist.zip dist appspec.yml scripts/  # Zip your Flask app project
+         # zip -r dist.zip dist   
+          zip -r dist.zip dist appspec.yml scripts/  # Zip your Flask app project
 
       - name: Upload zip file to S3
         run: aws s3 cp dist.zip s3://zukarte-deployment-web-app/
 
-      # - name: Create deployment
-      #   run: |
-      #     aws deploy create-deployment \
-      #       --application-name CD-Admin-Web-app \
-      #       --s3-location bucket=i3-web-admin,key=dist.zip,bundleType=zip \
-      #       --deployment-group-name DG-CD-Admin-web-app-staging \
-      #       --region eu-west-2 \
-      #       --description "Deploying react app"  # Adjust as needed
+      - name: Create deployment
+        run: |
+          aws deploy create-deployment \
+            --application-name web_zukarte \
+            --s3-location bucket=zukarte-deployment-web-app,key=dist.zip,bundleType=zip \
+            --deployment-group-name DG-webapp-staging \
+            --region ap-south-1 \
+            --description "Deploying react app"  # Adjust as needed
 
 
 
